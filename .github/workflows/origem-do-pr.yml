@@ -1,0 +1,24 @@
+# PR para a branch principal só pode vir da branch de desenvolvimento.
+# O release-please é a única exceção, porque o PR dele nasce da própria principal.
+name: Origem do PR
+on:
+  pull_request:
+    branches: [main]
+permissions: {}
+jobs:
+  origem-do-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confere a branch de origem
+        env:
+          ORIGEM: ${{ github.head_ref }}
+          REPO_ORIGEM: ${{ github.event.pull_request.head.repo.full_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ "$REPO_ORIGEM" != "$REPO" ]; then
+            echo "::error::PR para main não pode vir de fork."; exit 1
+          fi
+          case "$ORIGEM" in
+            development|release-please--*) echo "Origem permitida: $ORIGEM" ;;
+            *) echo "::error::PR para main só pode vir da development. Origem: $ORIGEM"; exit 1 ;;
+          esac
